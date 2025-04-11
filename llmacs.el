@@ -30,8 +30,6 @@
 (defun get-response (prompt)
   "Connect to an LLM and get a response for the provided prompt."
   
-  ; write a haiku about the music instrument cello
-  
   (setq content-length (number-to-string(length prompt)))
   
   (setq headers (concat "Accept: */*\r\n"
@@ -48,35 +46,39 @@
   (setq body (concat "POST /v1/chat/completions HTTP/1.1\r\n" headers "\r\n\r\n" prompt))
 
 
-  
-  (process-send-string conn body)
-  (print (process-buffer conn))
+  (setq kept nil)
 
+  (process-send-string conn body)
+  (sleep-for 3) ;; async is hard
+  (message kept)
+  (delete-process conn)
   )
 
 				
-(defun replace-with-prompt-and-response (message)
+(defun replace-with-prompt-and-response (output)
+   
+  (message output)
+  (message "YO")
+;    (setq jsonbody output)
   (let (
 	(selection (buffer-substring-no-properties (region-beginning) (region-end))))
 
     (kill-region (region-beginning) (region-end))
-    (insert (concat selection "\n" message))
+    (insert (concat selection "\n" output))
     )
+    
+  
   )
 
 
 (defun keep-llmacs-output (process output)
   "Manage and process output anc check status of Toot action."
-  (sleep-for 3) ;; async is hard 
-  (setq lines (split-string output "\r\n" t))
-  (if (string-prefix-p "HTTP/1.1 200 OK" (car lines))
-      (replace-with-prompt-and-response "yo")
-    (handle-error lines))
-   
-  (delete-process conn))
+;;  (sleep-for 3) ;; async is hard
+  (setq kept (cons kept output))
+  )
 
 
-(defun handle-error (lines)
+(defun handle-error (lines conn)
   "Handle error or non-200 condition!"
   (mapcar (lambda (x)
 	    
@@ -86,4 +88,7 @@
 	       )
 	    )
 	  lines)
+
+  
+  (delete-process conn)
    )
