@@ -9,23 +9,28 @@
 	    (selection (buffer-substring-no-properties (region-beginning) (region-end))))
 	(if (= (length selection) 0)
 	    (print "nothing selected")
-	  (print selection))
-
+	  (setq prompt (concat "{
+                                \"model\": \"gpt-4o-mini\",
+                                \"store\": true,
+                                \"messages\": [
+                                                 {\"role\": \"user\", \"content\": \""
+	                                            selection
+				                "\"}
+                                               ]
+                                  }"))
+	  )
+	
 
 
 	))
 
-  (setq prompt (concat "{
-    \"model\": \"gpt-4o-mini\",
-    \"store\": true,
-    \"messages\": [
-      {\"role\": \"user\", \"content\": \""
-	"write a haiku on tarriffs"
-	"\"}
-    ]
-  }"))
+  (get-response prompt)
+  )
 
-
+(defun get-response (prompt)
+  "Connect to an LLM and get a response for the provided prompt."
+  
+  ; write a haiku about the music instrument cello
   
   (setq content-length (number-to-string(length prompt)))
   
@@ -39,11 +44,46 @@
 
 
   (setq conn (open-network-stream "llm" nil  "api.openai.com" 443  :type 'tls))
-  (set-process-filter conn 'keep-output)
+  (set-process-filter conn 'keep-llmacs-output)
   (setq body (concat "POST /v1/chat/completions HTTP/1.1\r\n" headers "\r\n\r\n" prompt))
 
 
   
-  (process-send-string conn body))
+  (process-send-string conn body)
+  (print (process-buffer conn))
+
+  )
 
 				
+(defun replace-with-prompt-and-response (message)
+  (let (
+	(selection (buffer-substring-no-properties (region-beginning) (region-end))))
+
+    (kill-region (region-beginning) (region-end))
+    (insert (concat selection "\n" message))
+    )
+  )
+
+
+(defun keep-llmacs-output (process output)
+  "Manage and process output anc check status of Toot action."
+  (sleep-for 3) ;; async is hard 
+  (setq lines (split-string output "\r\n" t))
+  (if (string-prefix-p "HTTP/1.1 200 OK" (car lines))
+      (replace-with-prompt-and-response "yo")
+    (handle-error lines))
+   
+  (delete-process conn))
+
+
+(defun handle-error (lines)
+  "Handle error or non-200 condition!"
+  (mapcar (lambda (x)
+	    
+	    (if (string-prefix-p "{\"errors\":" x)
+		(message (concat "ERROR: " (car (cdr (reverse (split-string x  "[\"]"))))))
+	      (print x)
+	       )
+	    )
+	  lines)
+   )
