@@ -50,16 +50,20 @@
 
   (process-send-string conn body)
   (sleep-for 3) ;; async is hard
-  (message kept)
+
+;;  (message  (mapconcat #'identity kept))
+;;  (replace-with-prompt-and-response (mapconcat #'identity kept))
+  (setq json-data (json-parse-string (extract-json-from-string (format "%s" (flatten-safe kept)))))
+
+
+  (replace-with-prompt-and-response (gethash "content" (gethash "message" (aref (gethash "choices" json-data) 0))))
   (delete-process conn)
   )
 
 				
 (defun replace-with-prompt-and-response (output)
    
-  (message output)
-  (message "YO")
-;    (setq jsonbody output)
+  
   (let (
 	(selection (buffer-substring-no-properties (region-beginning) (region-end))))
 
@@ -92,3 +96,37 @@
   
   (delete-process conn)
    )
+
+
+
+
+(defun extract-json-from-string (input)
+  "Extract the first valid JSON object or array from INPUT string."
+  (let ((start (or (string-match "[{\[]" input) nil)))
+    (when start
+      (let ((depth 0)
+            (in-str nil)
+            (escaped nil)
+            (i start)
+            (len (length input)))
+        (while (and (< i len)
+                    (or (> depth 0) (= i start)))
+          (let ((c (aref input i)))
+            (cond
+             ((and (not in-str) (member c '(?{ ?\[))) (setq depth (1+ depth)))
+             ((and (not in-str) (member c '(?} ?\]))) (setq depth (1- depth)))
+             ((and (not escaped) (eq c ?\")) (setq in-str (not in-str)))
+             ((and in-str (eq c ?\\)) (setq escaped (not escaped)))
+             (t (setq escaped nil))))
+          (setq i (1+ i)))
+        (substring input start i)))))
+
+
+
+  (defun flatten-safe (x)
+  "Flatten nested list X, handling dotted pairs correctly."
+  (cond
+   ((null x) nil)
+   ((consp x)
+    (append (flatten-safe (car x)) (flatten-safe (cdr x))))
+   (t (list x))))
