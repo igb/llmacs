@@ -44,36 +44,70 @@
   (setq conn (open-network-stream "llm" nil  "api.openai.com" 443  :type 'tls))
   (set-process-filter conn 'keep-llmacs-output)
   (setq body (concat "POST /v1/chat/completions HTTP/1.1\r\n" headers "\r\n\r\n" prompt))
-
+  (message "talking to ChatGPT...")
 
   (setq kept nil)
 
   (process-send-string conn body)
   (sleep-for 3) ;; async is hard
 
-;;  (message  (mapconcat #'identity kept))
-;;  (replace-with-prompt-and-response (mapconcat #'identity kept))
-  (setq json-data (json-parse-string (extract-json-from-string (format "%s" (flatten-safe kept)))))
 
+  
+  
+  (if (null  (flatten-safe kept))
+      (progn (message "waiting...")
+	     (sleep-for 3)))
 
-  (replace-with-prompt-and-response (gethash "content" (gethash "message" (aref (gethash "choices" json-data) 0))))
+  
+  (if (null  (flatten-safe kept))
+      (progn (message "still waiting...")
+	     (sleep-for 3)))
+
+  (if (null  (flatten-safe kept))
+      (progn (message "omg STILL waiting...")
+	     (sleep-for 3)))
+
+  (if (null  (flatten-safe kept))
+      (progn (message "still waiting...")
+	     (sleep-for 3)))
+
+    
+  (if (null  (flatten-safe kept))
+      (progn (message "JFC still waiting...")
+	     (sleep-for 3)))
+
+  (if (null  (flatten-safe kept))
+      (message "giving up...")
+    (setq body-string (format "%s" (flatten-safe kept)))
+    
+;;    (message body-string)
+    (setq json-string (extract-json-from-string  body-string)) 
+  ;;  (message json-string)
+    (setq json-data (json-parse-string json-string))
+    (replace-with-prompt-and-response
+     (gethash "content"
+	      (gethash "message"
+		       (aref (gethash "choices" json-data) 0))))
+
+    (message "done with prompt")
+    )    
+  
   (delete-process conn)
   )
 
-				
-(defun replace-with-prompt-and-response (output)
+ (defun replace-with-prompt-and-response (output)
    
-  
-  (let (
-	(selection (buffer-substring-no-properties (region-beginning) (region-end))))
-
-    (kill-region (region-beginning) (region-end))
-    (insert (concat selection "\n" output))
-    )
-    
-  
-  )
-
+   
+   (let (
+	 (selection (buffer-substring-no-properties (region-beginning) (region-end))))
+     
+     (kill-region (region-beginning) (region-end))
+     (insert (concat selection "\n\n" output))
+     )
+   
+   
+   )
+ 
 
 (defun keep-llmacs-output (process output)
   "Manage and process output anc check status of Toot action."
