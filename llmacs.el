@@ -1,8 +1,10 @@
 
 (defun llmacs()
   "Interact with ChatGPT"
- ;; write a haiku on tarriffs 
+
   (interactive)
+  
+  (read-llmacs-creds)
 
   (if mark-active
       (let (
@@ -13,9 +15,9 @@
                                 \"model\": \"gpt-4o-mini\",
                                 \"store\": true,
                                 \"messages\": [
-                                                 {\"role\": \"user\", \"content\": \""
-	                                            selection
-				                "\"}
+                                                 {\"role\": \"user\", \"content\": "
+	                                            (json-encode-string selection)
+				                "}
                                                ]
                                   }"))
 	  )
@@ -29,7 +31,6 @@
 
 (defun get-response (prompt)
   "Connect to an LLM and get a response for the provided prompt."
-  
   (setq content-length (number-to-string(length prompt)))
   
   (setq headers (concat "Accept: */*\r\n"
@@ -38,12 +39,14 @@
 			"Content-Length: "
 			content-length
 			"\r\n"
-			"Authorization: Bearer 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"))
+			"Authorization: Bearer "
+			API_KEY))
 
 
   (setq conn (open-network-stream "llm" nil  "api.openai.com" 443  :type 'tls))
   (set-process-filter conn 'keep-llmacs-output)
   (setq body (concat "POST /v1/chat/completions HTTP/1.1\r\n" headers "\r\n\r\n" prompt))
+  (message body)
   (message "talking to ChatGPT...")
 
   (setq kept nil)
@@ -82,7 +85,7 @@
     
 ;;    (message body-string)
     (setq json-string (extract-json-from-string  body-string)) 
-  ;;  (message json-string)
+    (message json-string)
     (setq json-data (json-parse-string json-string))
     (replace-with-prompt-and-response
      (gethash "content"
@@ -164,3 +167,23 @@
    ((consp x)
     (append (flatten-safe (car x)) (flatten-safe (cdr x))))
    (t (list x))))
+
+
+
+(defun read-llmacs-creds ()
+  "Read auth tokens from local file"
+  (if (file-exists-p "~/.llmacs")
+      (read-creds-from-llmacs)
+    (print "Could not find credentials at ~/.llmacs")
+    )
+  )
+
+
+
+(defun read-creds-from-llmacs ()
+  "Read auth tokens from ~/.llmacs"
+  (with-temp-buffer
+	(insert-file-contents "~/.llmacs")
+	(setq raw-creds (split-string (buffer-string) "\n" t))
+	(setq cred-nvps (mapcar (lambda (x) (split-string x "=")) raw-creds))
+	(mapcar (lambda (x) (set (intern (car x)) (car (cdr x)))) cred-nvps)))
