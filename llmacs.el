@@ -5,12 +5,19 @@
   (interactive)
   
   (read-llmacs-creds)
+  
+  (when (not (boundp 'prompt-history))
+    (setq prompt-history ())
+    (message "setting prompt-history")
+    )
+
 
   (if mark-active
       (let (
 	    (selection (buffer-substring-no-properties (region-beginning) (region-end))))
 	(if (= (length selection) 0)
 	    (print "nothing selected")
+	  (setq prompt-history (append prompt-history (create-message "user" selection)))
 	  (setq prompt (concat "{
                                 \"model\": \"gpt-4o-mini\",
                                 \"store\": true,
