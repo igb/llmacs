@@ -71,7 +71,7 @@
 	     (sleep-for 3)))
 
   (if (null  (flatten-safe kept))
-      (progn (message "still waiting...")
+      (progn (message "yep...still waiting...")
 	     (sleep-for 3)))
 
     
@@ -80,10 +80,15 @@
 	     (sleep-for 3)))
 
   (if (null  (flatten-safe kept))
-      (message "giving up...")
-    (setq body-string (format "%s" (flatten-safe kept)))
+      (progn (message "Ok, this has been a while...gonna wait like 5 more seconds.")
+	     (sleep-for 5)))
+
+  
+  (if (null  (flatten-safe kept))
+      (message "Took too long. I'm giving up.")
+    (setq body-string (replace-regexp-in-string "\r+[0-9A-Fa-f[:space:]]+\r+" "" (format "%s" (flatten-safe kept))))
     
-;;    (message body-string)
+    (message body-string)
     (setq json-string (extract-json-from-string  body-string)) 
     (message json-string)
     (setq json-data (json-parse-string json-string))
@@ -187,3 +192,11 @@
 	(setq raw-creds (split-string (buffer-string) "\n" t))
 	(setq cred-nvps (mapcar (lambda (x) (split-string x "=")) raw-creds))
 	(mapcar (lambda (x) (set (intern (car x)) (car (cdr x)))) cred-nvps)))
+
+
+(defun create-message (role message)
+  (concat  "{\"role\": \""
+	   role
+	   "\", \"content\": "
+	   (json-encode-string selection)
+	   "}"))
