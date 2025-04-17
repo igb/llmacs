@@ -14,11 +14,9 @@
 	  (setq prompt (concat "{
                                 \"model\": \"gpt-4o-mini\",
                                 \"store\": true,
-                                \"messages\": [
-                                                 {\"role\": \"user\", \"content\": "
-	                                            (json-encode-string selection)
-				                "}
-                                               ]
+                                \"messages\": ["
+                               (create-message "user" selection)
+                                               "]
                                   }"))
 	  )
 	
