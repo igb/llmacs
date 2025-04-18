@@ -51,7 +51,7 @@
   (setq conn (open-network-stream "llm" nil  "api.openai.com" 443  :type 'tls))
   (set-process-filter conn 'keep-llmacs-output)
   (setq body (concat "POST /v1/chat/completions HTTP/1.1\r\n" headers "\r\n\r\n" prompt))
-  (message body)
+  ;;(message body)
   (message "talking to ChatGPT...")
 
   (setq kept nil)
@@ -124,8 +124,7 @@
 
 (defun keep-llmacs-output (process output)
   "Manage and process output anc check status of Toot action."
-;;  (sleep-for 3) ;; async is hard
-  (setq kept (cons kept output))
+  (setq kept (concat kept output))
   )
 
 
