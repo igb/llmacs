@@ -215,3 +215,11 @@
 	   "\", \"content\": "
 	   (json-encode-string message)
 	   "}"))
+
+
+
+(defun llmacs-new()
+  "Interact with ChatGPT"
+
+  (interactive)
+  (setq prompt-history ()))
