@@ -17,14 +17,14 @@
 	    (selection (buffer-substring-no-properties (region-beginning) (region-end))))
 	(if (= (length selection) 0)
 	    (print "nothing selected")
-	  (setq prompt-history (append prompt-history (create-message "user" selection)))
+	  (add-to-list 'prompt-history (create-message "user" selection) t)
 	  (setq prompt (concat "{
-                                \"model\": \"gpt-4o-mini\",
-                                \"store\": true,
-                                \"messages\": ["
-                               (create-message "user" selection)
-                                               "]
-                                  }"))
+ \"model\": \"gpt-4o-mini\",
+ \"store\": true,
+ \"messages\": ["
+  (chat-history-to-json prompt-history)
+  "]
+  }"))
 	  )
 	
 
@@ -36,7 +36,7 @@
 
 (defun get-response (prompt)
   "Connect to an LLM and get a response for the provided prompt."
-  (setq content-length (number-to-string(length prompt)))
+  (setq content-length (number-to-string(string-bytes prompt)))
   
   (setq headers (concat "Accept: */*\r\n"
 			"Host: api.openai.com\r\n" 
@@ -109,7 +109,7 @@
   )
 
  (defun replace-with-prompt-and-response (output)
-   
+    (add-to-list 'prompt-history (create-message "assistant" output) t)
    
    (let (
 	 (selection (buffer-substring-no-properties (region-beginning) (region-end))))
@@ -188,7 +188,17 @@
     )
   )
 
+(defun chat-history-to-json (history)
+  (cond
+   ((consp history)
+    (concat  (car history) (get-delimiter (cdr history)) (chat-history-to-json (cdr history))))
+    (t "")))
 
+(defun get-delimiter (arraylist)
+  (cond
+   ((consp arraylist)
+    ",\n")
+   (t "")))
 
 (defun read-creds-from-llmacs ()
   "Read auth tokens from ~/.llmacs"
@@ -203,5 +213,5 @@
   (concat  "{\"role\": \""
 	   role
 	   "\", \"content\": "
-	   (json-encode-string selection)
+	   (json-encode-string message)
 	   "}"))
