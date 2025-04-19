@@ -47,4 +47,4 @@ Ok, now you are good to go. Just launch or restart Emacs!
 
 ## Questions? ##
 
-You can always contact me with any questions at [@igb@mastodon.hccp.org](https://mastodon.hccp.org/igb).
+You can always contact me with any questions at [@igb@mastodon.hccp.org](https://mastodon.hccp.org/@igb).
