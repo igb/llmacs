@@ -57,8 +57,10 @@
   (setq kept nil)
 
   (process-send-string conn body)
-  (sleep-for 3) ;; async is hard
 
+
+
+  (sleep-for 3) ;; async is hard
 
   
   
@@ -93,9 +95,9 @@
       (message "Took too long. I'm giving up.")
     (setq body-string (replace-regexp-in-string "\r+[0-9A-Fa-f[:space:]]+\r+" "" (format "%s" (flatten-safe kept))))
     
-    (message body-string)
+   ;; (message body-string)
     (setq json-string (extract-json-from-string  body-string)) 
-    (message json-string)
+  ;;  (message json-string)
     (setq json-data (json-parse-string json-string))
     (replace-with-prompt-and-response
      (gethash "content"
@@ -126,22 +128,6 @@
   "Manage and process output anc check status of Toot action."
   (setq kept (concat kept output))
   )
-
-
-(defun handle-error (lines conn)
-  "Handle error or non-200 condition!"
-  (mapcar (lambda (x)
-	    
-	    (if (string-prefix-p "{\"errors\":" x)
-		(message (concat "ERROR: " (car (cdr (reverse (split-string x  "[\"]"))))))
-	      (print x)
-	       )
-	    )
-	  lines)
-
-  
-  (delete-process conn)
-   )
 
 
 
@@ -222,3 +208,15 @@
 
   (interactive)
   (setq prompt-history ()))
+
+
+;; UNIT TESTS
+(require 'ert)
+
+(ert-deftest test-create-message()
+  "Validate the JSON emitted when constructing a prompt/message"
+  (should
+   (equal
+   (create-message "user" "Write me a Haiku about Husker Du, please.")
+   "{\"role\": \"user\", \"content\": \"Write me a Haiku about Husker Du, please.\"}"
+   )))
