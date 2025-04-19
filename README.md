@@ -45,6 +45,8 @@ Ok, now you are good to go. Just launch or restart Emacs!
 6. Subsequent invocations will preserve chat history (prompts and responses) to support multi-prompt, contextual discussions.
 7. To start a new chat, clear chat history with the *M-x llmacs-new* command. 
 
+#### Example ####
+![example chat](https://raw.githubusercontent.com/igb/llmacs/refs/heads/main/example.gif)
 ## Questions? ##
 
 You can always contact me with any questions at [@igb@mastodon.hccp.org](https://mastodon.hccp.org/@igb).
