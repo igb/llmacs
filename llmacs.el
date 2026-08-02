@@ -18,21 +18,22 @@
 	(if (= (length selection) 0)
 	    (print "nothing selected")
 	  (add-to-list 'prompt-history (create-message "user" selection) t)
-	  (setq prompt (concat "{
+	  (setq prompt (create-prompt prompt-history) )
+	  )	
+
+	)
+    )
+  (get-response prompt)
+  )
+
+(defun create-prompt(prompt-history)
+   (concat "{
  \"model\": \"gpt-4o-mini\",
  \"store\": true,
  \"messages\": ["
   (chat-history-to-json prompt-history)
   "]
   }"))
-	  )
-	
-
-
-	))
-
-  (get-response prompt)
-  )
 
 (defun get-response (prompt)
   "Connect to an LLM and get a response for the provided prompt."
@@ -51,7 +52,7 @@
   (setq conn (open-network-stream "llm" nil  "api.openai.com" 443  :type 'tls))
   (set-process-filter conn 'keep-llmacs-output)
   (setq body (concat "POST /v1/chat/completions HTTP/1.1\r\n" headers "\r\n\r\n" prompt))
-  ;;(message body)
+  (message body)
   (message "talking to ChatGPT...")
 
   (setq kept nil)
@@ -88,16 +89,16 @@
 
   (if (null  (flatten-safe kept))
       (progn (message "Ok, this has been a while...gonna wait like 5 more seconds.")
-	     (sleep-for 5)))
+	     (sleep-for 25)))
 
   
   (if (null  (flatten-safe kept))
       (message "Took too long. I'm giving up.")
     (setq body-string (replace-regexp-in-string "\r+[0-9A-Fa-f[:space:]]+\r+" "" (format "%s" (flatten-safe kept))))
     
-   ;; (message body-string)
+    (message body-string)
     (setq json-string (extract-json-from-string  body-string)) 
-  ;;  (message json-string)
+    (message json-string)
     (setq json-data (json-parse-string json-string))
     (replace-with-prompt-and-response
      (gethash "content"
@@ -112,13 +113,14 @@
 
  (defun replace-with-prompt-and-response (output)
     (add-to-list 'prompt-history (create-message "assistant" output) t)
-   
+   (save-excursion
    (let (
 	 (selection (buffer-substring-no-properties (region-beginning) (region-end))))
      
      (kill-region (region-beginning) (region-end))
      (insert (concat selection "\n\n" output))
      )
+   )
    
    
    )
@@ -126,6 +128,8 @@
 
 (defun keep-llmacs-output (process output)
   "Manage and process output anc check status of Toot action."
+  (message "output:")
+  ;;(message output)
   (setq kept (concat kept output))
   )
 
@@ -220,3 +224,14 @@
    (create-message "user" "Write me a Haiku about Husker Du, please.")
    "{\"role\": \"user\", \"content\": \"Write me a Haiku about Husker Du, please.\"}"
    )))
+
+
+(ert-deftest test-extract-json-from-string()
+  "Validate that we can extract JSON from arbitrary strings."
+
+  (should
+   (equal
+    (extract-json-from-string "Hello {[\"a\", foo, 10]}")
+    "{[\"a\", foo, 10]}"
+    ))
+  )
