@@ -1,6 +1,6 @@
 # llmacs
 
-llmacs is an Elisp extension for the [Emacs](https://www.gnu.org/software/emacs/) text editor that enables a user to interact with [ChatGPT](https://chatgpt.com/) from insode an Emacs buffer.
+llmacs is an Elisp extension for the [Emacs](https://www.gnu.org/software/emacs/) text editor that enables a user to interact with [ChatGPT](https://chatgpt.com/) from inside an Emacs buffer.
 
 ## Installation Instructions
 
