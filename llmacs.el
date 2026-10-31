@@ -1,3 +1,5 @@
+;;; llmacs.el --- Interact with LLMs -*- lexical-binding: t; -*-
+(require 'json)
 
 (defun llmacs()
   "Interact with ChatGPT"
@@ -40,7 +42,8 @@
   (setq content-length (number-to-string(string-bytes prompt)))
   
   (setq headers (concat "Accept: */*\r\n"
-			"Host: api.openai.com\r\n" 
+			"Host: api.openai.com\r\n"
+			"Connection: close\r\n"
 			"Content-Type: application/json\r\n"
 			"Content-Length: "
 			content-length
@@ -234,4 +237,13 @@
     (extract-json-from-string "Hello {[\"a\", foo, 10]}")
     "{[\"a\", foo, 10]}"
     ))
+  )
+
+(ert-deftest test-lexical-binding()
+  "Validate that lexical binding is set and working"
+  (should
+   (equal
+    (funcall     (let ((x 42))
+		   (lambda () x)))
+    42))
   )
